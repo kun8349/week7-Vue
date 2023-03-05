@@ -216,7 +216,6 @@ export default {
   watch: {
     product () {
       this.tempProduct = this.product
-      console.log(this.tempProduct)
       if (!this.tempProduct.imagesUrl) {
         this.tempProduct.imagesUrl = []
       }

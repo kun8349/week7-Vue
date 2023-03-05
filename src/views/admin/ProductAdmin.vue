@@ -1,4 +1,17 @@
 <template>
+    <div>
+      <AppLoading v-model:active="isLoading">
+          <div id="load">
+            <div>G</div>
+            <div>N</div>
+            <div>I</div>
+            <div>D</div>
+            <div>A</div>
+            <div>O</div>
+            <div>L</div>
+          </div>
+      </AppLoading>
+    </div>
     <div class="my-3 text-end">
         <button type="button" class="btn btn-primary" @click="()=>openModal('new')">建立新產品</button>
     </div>
@@ -13,22 +26,28 @@
             <th width="120px">編輯</th>
             </tr>
         </thead>
-        <tbody>
-            <tr v-for="item in productList" :key="item.title">
-            <td>{{ item.category }}</td>
-            <td>{{ item.title }}</td>
-            <td>{{ item.origin_price }}</td>
-            <td>{{ item.price }}</td>
-            <td>
-                <span class="text-success" v-if="item.is_enabled">啟用</span>
-                <span v-else>未啟用</span>
-            </td>
-            <td>
-                <div class="btn-group" role="group" aria-label="Basic mixed styles example">
-                    <button type="button" class="btn btn-outline-primary btn-sm" @click="()=>openModal('edit',item)">編輯</button>
-                    <button type="button" class="btn btn-outline-danger btn-sm" @click="()=>openModal('del',item)">刪除</button>
-                </div>
-            </td>
+        <tbody class="table-group-divider">
+            <tr v-for="item in productList" :key="item.id+'後台產品列表'">
+              <td>{{ item.category }}</td>
+              <td>{{ item.title }}</td>
+              <td>{{ item.origin_price }}</td>
+              <td>{{ item.price }}</td>
+              <td>
+                  <span class="text-success" v-if="item.is_enabled">啟用</span>
+                  <span v-else>未啟用</span>
+              </td>
+              <td>
+                  <div class="btn-group" role="group" aria-label="Basic mixed styles example">
+                      <button type="button" class="btn btn-outline-primary btn-sm" @click="()=>openModal('edit',item)">編輯</button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-danger btn-sm"
+                        @click="()=>openDelProductModal(item)"
+                      >
+                        刪除
+                      </button>
+                  </div>
+              </td>
             </tr>
         </tbody>
     </table>
@@ -41,15 +60,20 @@
       :isNew="isNew"
       ref="productModal"
     />
+    <DelModal :item="tempProduct" @del-item="delProduct" ref="delModal"></DelModal>
 </template>
 
 <script>
 import ProductModal from '@/components/ModalProduct.vue'
 import Pagination from '@/components/PaginationView.vue'
+import DelModal from '@/components/DelModal.vue'
 const { VITE_URL, VITE_PATH } = import.meta.env
 export default {
   data () {
     return {
+      isLoading: true,
+      fullPage: false,
+      color: '#BBFFFF',
       isNew: true,
       productList: [],
       tempProduct: {
@@ -61,16 +85,19 @@ export default {
   },
   components: {
     ProductModal,
-    Pagination
+    Pagination,
+    DelModal
   },
-  emits: ['update-product'],
+
   methods: {
     getProducts (page = 1) {
+      this.isLoading = true
       this.currentPage = page
       this.$http.get(`${VITE_URL}api/${VITE_PATH}/admin/products/?page=${page}`)
         .then(res => {
           this.productList = res.data.products
           this.pages = res.data.pagination
+          this.isLoading = false
         })
         .catch(err => {
           alert(err.response.data.message)
@@ -92,33 +119,198 @@ export default {
       }
       const productComponent = this.$refs.productModal
       productComponent.openModal()
+    },
+    updateProduct (item) {
+      this.tempProduct = item
+      let url = `${VITE_URL}/api/${VITE_PATH}/admin/product`
+      let http = 'post'
+      if (!this.isNew) {
+        url = `${VITE_URL}/api/${VITE_PATH}/admin/product/${this.tempProduct.id}`
+        http = 'put'
+      }
+      this.$http[http](url, { data: this.tempProduct })
+        .then((response) => {
+          alert(response.data.message)
+          const productComponent = this.$refs.productModal
+          productComponent.hideModal()
+          this.getProducts()
+        })
+        .catch((err) => {
+          alert(err.response.data.message)
+        })
+    },
+    openDelProductModal (item) {
+      this.tempProduct = { ...item }
+      const delComponent = this.$refs.delModal
+      delComponent.openModal()
+    },
+    delProduct () {
+      this.$http.delete(`${VITE_URL}api/${VITE_PATH}/admin/product/${this.tempProduct.id}`)
+        .then(() => {
+          const delComponent = this.$refs.delModal
+          delComponent.hideModal()
+          this.getProducts(this.currentPage)
+          alert('成功刪除產品')
+        })
+        .catch((error) => {
+          console.log(error)
+        })
     }
   },
-  updateProduct (item) {
-    this.tempProduct = item
-    let url = `${VITE_URL}/api/${VITE_PATH}/admin/product`
-    let http = 'post'
-    if (!this.isNew) {
-      url = `${VITE_URL}/api/${VITE_PATH}/admin/product/${this.tempProduct.id}`
-      http = 'put'
-    }
-    this.$http[http](url, { data: this.tempProduct })
-      .then((response) => {
-        alert(response.data.message)
-        const productComponent = this.$refs.productModal
-        productComponent.hideModal()
-        this.getProducts()
-      })
-      .catch((err) => {
-        alert(err.response.data.message)
-      })
-  },
-  created () {
+  mounted () {
     this.getProducts()
   }
 }
 </script>
 
 <style lang="scss" scoped>
+  #load {
+  position:absolute;
+  width:600px;
+  height:36px;
+  left:50%;
+  top:40%;
+  margin-left:-300px;
+  overflow:visible;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
+  user-select:none;
+  cursor:default;
+}
+
+#load div {
+  position:absolute;
+  width:20px;
+  height:36px;
+  opacity:0;
+  font-family:Helvetica, Arial, sans-serif;
+  animation:move 3s linear infinite;
+  -o-animation:move 3s linear infinite;
+  -moz-animation:move 3s linear infinite;
+  -webkit-animation:move 3s linear infinite;
+  transform:rotate(180deg);
+  -o-transform:rotate(180deg);
+  -moz-transform:rotate(180deg);
+  -webkit-transform:rotate(180deg);
+  color: black;
+}
+
+#load div:nth-child(2) {
+  animation-delay:0.2s;
+  -o-animation-delay:0.2s;
+  -moz-animation-delay:0.2s;
+  -webkit-animation-delay:0.2s;
+}
+#load div:nth-child(3) {
+  animation-delay:0.4s;
+  -o-animation-delay:0.4s;
+  -webkit-animation-delay:0.4s;
+  -webkit-animation-delay:0.4s;
+}
+#load div:nth-child(4) {
+  animation-delay:0.6s;
+  -o-animation-delay:0.6s;
+  -moz-animation-delay:0.6s;
+  -webkit-animation-delay:0.6s;
+}
+#load div:nth-child(5) {
+  animation-delay:0.8s;
+  -o-animation-delay:0.8s;
+  -moz-animation-delay:0.8s;
+  -webkit-animation-delay:0.8s;
+}
+#load div:nth-child(6) {
+  animation-delay:1s;
+  -o-animation-delay:1s;
+  -moz-animation-delay:1s;
+  -webkit-animation-delay:1s;
+}
+#load div:nth-child(7) {
+  animation-delay:1.2s;
+  -o-animation-delay:1.2s;
+  -moz-animation-delay:1.2s;
+  -webkit-animation-delay:1.2s;
+}
+
+@keyframes move {
+  0% {
+    left:0;
+    opacity:0;
+  }
+  10% {left: 41%;
+    -moz-transform:rotate(0deg);
+    -webkit-transform:rotate(0deg);
+    -o-transform:rotate(0deg);
+    transform:rotate(0deg);
+    opacity:1;
+  }
+  40% {
+    left:59%;
+    -moz-transform:rotate(0deg);
+    -webkit-transform:rotate(0deg);
+    -o-transform:rotate(0deg);
+    transform:rotate(0deg);
+    opacity:1;
+  }
+  100% {
+    left:100%;
+    -moz-transform:rotate(-180deg);
+    -webkit-transform:rotate(-180deg);
+    -o-transform:rotate(-180deg);
+    transform:rotate(-180deg);
+    opacity:0;
+  }
+}
+
+@-moz-keyframes move {
+  0% {
+    left:0;
+    opacity:0;
+  }
+  10% {
+    left:41%;
+    -moz-transform:rotate(0deg);
+    transform:rotate(0deg);
+    opacity:1;
+  }
+  40% {
+    left:59%;
+    -moz-transform:rotate(0deg);
+    transform:rotate(0deg);
+    opacity:1;
+  }
+  100% {
+    left:100%;
+    -moz-transform:rotate(-180deg);
+    transform:rotate(-180deg);
+    opacity:0;
+  }
+}
+
+@-webkit-keyframes move {
+  0% {
+    left:0;
+    opacity:0;
+  }
+  10% {
+    left:41%;
+    -webkit-transform:rotate(0deg);
+    transform:rotate(0deg);
+    opacity:1;
+  }
+  40% {
+    left:59%;
+    -webkit-transform:rotate(0deg);
+    transform:rotate(0deg);
+    opacity:1;
+  }
+  100% {
+    left:100%;
+    -webkit-transform:rotate(-180deg);
+    transform:rotate(-180deg);
+    opacity:0;
+  }
+}
 
 </style>

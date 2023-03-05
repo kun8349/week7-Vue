@@ -68,34 +68,83 @@
         </tbody>
     </table>
     <div class="my-5 row justify-content-center">
-      <v-form ref="form" class="col-md-6" v-slot="{ errors }" @submit="order">
+      <v-form
+        ref="form"
+        class="col-md-6"
+        v-slot="{ errors }"
+        @submit="order"
+      >
         <div class="mb-3">
           <label for="email" class="form-label">Email</label>
-          <Field id="email" name="email" type="email" class="form-control" placeholder="請輸入 Email"
-            rules="email|required" v-model="data.user.email" :class="{ 'is-invalid': errors['email'] }"></Field>
+          <Field
+            id="email"
+            name="email"
+            type="email"
+            class="form-control"
+            placeholder="請輸入 Email"
+            rules="email|required"
+            v-model="data.user.email"
+            :class="{ 'is-invalid': errors['email'] }"
+          >
+          </Field>
           <error-message name="email" class="invalid-feedback"></error-message>
         </div>
         <div class="mb-3">
           <label for="name" class="form-label">收件人姓名</label>
-          <Field id="name" name="姓名" type="text" class="form-control" placeholder="請輸入姓名" rules="required|min:2"
-            v-model="data.user.name" :class="{ 'is-invalid': errors['姓名'] }"></Field>
+          <Field
+            id="name"
+            name="姓名"
+            type="text"
+            class="form-control"
+            placeholder="請輸入姓名"
+            rules="required|min:2"
+            v-model="data.user.name"
+            :class="{ 'is-invalid': errors['姓名'] }"
+          >
+          </Field>
           <error-message name="姓名" class="invalid-feedback"></error-message>
         </div>
         <div class="mb-3">
           <label for="tel" class="form-label">收件人電話</label>
-          <Field id="tel" name="電話" type="text" class="form-control" placeholder="請輸入電話" rules="required|numeric|min:8"
-            v-model="data.user.tel" :class="{ 'is-invalid': errors['電話'] }"></Field>
+          <Field
+            id="tel"
+            name="電話"
+            type="text"
+            class="form-control"
+            placeholder="請輸入電話"
+            rules="required|numeric|min:8"
+            v-model="data.user.tel"
+            :class="{ 'is-invalid': errors['電話'] }"
+          >
+          </Field>
           <error-message name="電話" class="invalid-feedback"></error-message>
         </div>
         <div class="mb-3">
           <label for="address" class="form-label">收件人地址</label>
-          <Field id="address" name="地址" type="text" class="form-control" placeholder="請輸入地址" rules="required"
-            v-model="data.user.address" :class="{ 'is-invalid': errors['地址'] }"></Field>
+          <Field
+            id="address"
+            name="地址"
+            type="text"
+            class="form-control"
+            placeholder="請輸入地址"
+            rules="required"
+            v-model="data.user.address"
+            :class="{ 'is-invalid': errors['地址'] }"
+          >
+          </Field>
           <error-message name="地址" class="invalid-feedback"></error-message>
         </div>
         <div class="mb-3">
           <label for="message" class="form-label">留言</label>
-          <textarea id="message" class="form-control" cols="30" rows="10" style="resize:none; height: 200px; overflow-y: auto;" v-model="data.user.message"></textarea>
+          <textarea
+            id="message"
+            class="form-control"
+            cols="30"
+            rows="10"
+            style="resize:none; height: 200px; overflow-y: auto;"
+            v-model="data.message"
+          >
+          </textarea>
         </div>
         <div class="text-end">
           <button type="submit" class="btn btn-danger">送出訂單</button>
@@ -130,9 +179,9 @@ export default {
           name: '',
           email: '',
           tel: '',
-          address: '',
-          message: ''
-        }
+          address: ''
+        },
+        message: ''
       }
     }
   },
@@ -202,17 +251,17 @@ export default {
         })
     },
     order () {
-      this.post(`${VITE_URL}api/${VITE_PATH}/order`, this.data)
+      const orderList = this.data
+      this.$http.post(`${VITE_URL}api/${VITE_PATH}/order`, { data: orderList })
         .then(res => {
-          this.loading()
           this.data = {
             user: {
               name: '',
               email: '',
               tel: '',
-              address: '',
-              message: ''
-            }
+              address: ''
+            },
+            message: ''
           }
           this.getCartList()
           Swal.fire({
@@ -224,7 +273,7 @@ export default {
         })
         .catch(() => {
           Swal.fire({
-            icon: 'success',
+            icon: 'error',
             title: '訂單建立失敗٩(ŏ﹏ŏ、)۶',
             showConfirmButton: false,
             timer: 1500
