@@ -67,6 +67,7 @@
 import ProductModal from '@/components/ModalProduct.vue'
 import Pagination from '@/components/PaginationView.vue'
 import DelModal from '@/components/DelModal.vue'
+import Swal from 'sweetalert2'
 const { VITE_URL, VITE_PATH } = import.meta.env
 export default {
   data () {
@@ -130,13 +131,36 @@ export default {
       }
       this.$http[http](url, { data: this.tempProduct })
         .then((response) => {
-          alert(response.data.message)
+          if (http === 'post') {
+            Swal.fire({
+              position: 'top-end',
+              icon: 'success',
+              title: '產品建立成功d(`･∀･)b',
+              showConfirmButton: false,
+              timer: 1500,
+              toast: true
+            })
+          } else {
+            Swal.fire({
+              position: 'top-end',
+              icon: 'success',
+              title: '產品更新成功d(`･∀･)b',
+              showConfirmButton: false,
+              timer: 1500,
+              toast: true
+            })
+          }
           const productComponent = this.$refs.productModal
           productComponent.hideModal()
           this.getProducts()
         })
-        .catch((err) => {
-          alert(err.response.data.message)
+        .catch(() => {
+          Swal.fire({
+            icon: 'success',
+            title: '處理失敗٩(ŏ﹏ŏ、)۶',
+            showConfirmButton: false,
+            timer: 1500
+          })
         })
     },
     openDelProductModal (item) {
@@ -150,10 +174,22 @@ export default {
           const delComponent = this.$refs.delModal
           delComponent.hideModal()
           this.getProducts(this.currentPage)
-          alert('成功刪除產品')
+          Swal.fire({
+            position: 'top-end',
+            icon: 'success',
+            title: '成功刪除單一產品d(`･∀･)b',
+            showConfirmButton: false,
+            timer: 1500,
+            toast: true
+          })
         })
-        .catch((error) => {
-          console.log(error)
+        .catch(() => {
+          Swal.fire({
+            icon: 'success',
+            title: '刪除單一品項失敗٩(ŏ﹏ŏ、)۶',
+            showConfirmButton: false,
+            timer: 1500
+          })
         })
     }
   },

@@ -170,9 +170,22 @@ export default {
           const orderComponent = this.$refs.delModal
           orderComponent.hideModal()
           this.getOrders(this.currentPage)
+          Swal.fire({
+            position: 'top-end',
+            icon: 'success',
+            title: '成功刪除單一產品d(`･∀･)b',
+            showConfirmButton: false,
+            timer: 1500,
+            toast: true
+          })
         })
-        .catch((error) => {
-          console.log(error)
+        .catch(() => {
+          Swal.fire({
+            icon: 'success',
+            title: '刪除單一品項失敗٩(ŏ﹏ŏ、)۶',
+            showConfirmButton: false,
+            timer: 1500
+          })
         })
     }
   },

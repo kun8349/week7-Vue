@@ -263,7 +263,7 @@ export default {
             },
             message: ''
           }
-          this.getCartList()
+          this.getCart()
           Swal.fire({
             icon: 'success',
             title: '訂單建立成功d(`･∀･)b',
